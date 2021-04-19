@@ -30,17 +30,42 @@
   )
 
 
+(define remove-all-dup
+  (lambda (x lst)
+    (if (empty? lst)
+        '()
+    (if (= (car lst) x)
+        (remove-all-dup x (cdr lst))
+    (cons (car lst) 
+          (remove-all-dup x (cdr lst)))))))
+
 (define payment
-  (lambda (n coins-lst)
-        @TODO
-  )
-)
+    (lambda (n coins-lst)
+        (if (< n 0)
+            0
+        (if (= n 0)
+            1
+        (if (and (> n 0) (empty? coins-lst))
+            0
+        (+ (payment  (- n (car coins-lst))  (cdr coins-lst)) 
+           (payment n (remove-all-dup (car coins-lst) coins-lst))))))))
                                
 (define compose-n
-  (lambda( f n)
-        @TODO
+  (lambda(f n)
+       (lambda (x)
+         (compose-n-helper f n x)
+        )
   )
 )
+(define x)
+(define compose-n-helper
+  (lambda (f count x)
+    (if (= count 1)
+        (f x)
+        (compose-n-helper f (- count 1) (f x))
+        )
+    )
+  )
 
 (define length
   (lambda (lst)
