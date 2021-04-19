@@ -171,7 +171,7 @@ export const parseL31SpecialForm = (op: Sexp, params: Sexp[]): Result<CExp> =>
     op === "lambda" ? parseProcExp(first(params), rest(params)) :
     op === "let" ? parseLetExp(first(params), rest(params)) :
     op === "quote" ? parseLitExp(first(params)) :
-    op === "class" ? parseClassExp(first(params), rest(params)):
+    op === "class" ? parseClassExp(first(params), second(params)):
     makeFailure("Never");
 
 // DefineExp -> (define <varDecl> <CExp>)
@@ -273,8 +273,8 @@ export const parseSExp = (sexp: Sexp): Result<SExpValue> =>
     sexp;
 
 // parse Class
-export const parseClassExp = (fields: Sexp, bindings: Sexp[]): Result<ClassExp> =>{
-        if(!isArray(fields) || !isGoodBindings(bindings)) {
+export const parseClassExp = (fields: Sexp, bindings: Sexp): Result<ClassExp> =>{
+        if(!isArray(fields) || !isGoodBindings(bindings) || !allT(isString, fields)) {
             return makeFailure("field not an array or not a good binding");
         }
         const vars = map(first => first[0], bindings);
@@ -282,7 +282,6 @@ export const parseClassExp = (fields: Sexp, bindings: Sexp[]): Result<ClassExp> 
         const bindingsResult = bind(valsResult, (vals: CExp[]) => makeOk(zipWith(makeBinding, vars, vals)));
         return bind(bindingsResult, x => makeOk(makeClassExp(map(makeVarDecl, fields), x)));
     }
-
 
 // ==========================================================================
 // Unparse: Map an AST to a concrete syntax string.
@@ -306,6 +305,10 @@ const unparseProcExp = (pe: ProcExp): string =>
 const unparseLetExp = (le: LetExp) : string => 
     `(let (${map((b: Binding) => `(${b.var.var} ${unparseL31(b.val)})`, le.bindings).join(" ")}) ${unparseLExps(le.body)})`
 
+const unparseClassExp = (ce: ClassExp) : string => 
+    `(class (${map((fields: VarDecl) => fields.var, ce.fields).join(" ")}) (${map((b: Binding) => `(${b.var.var} ${unparseL31(b.val)})`, ce.methods).join(" ")}))`
+
+
 export const unparseL31 = (exp: Program | Exp): string =>
     isBoolExp(exp) ? valueToString(exp.val) :
     isNumExp(exp) ? valueToString(exp.val) :
@@ -314,9 +317,13 @@ export const unparseL31 = (exp: Program | Exp): string =>
     isVarRef(exp) ? exp.var :
     isProcExp(exp) ? unparseProcExp(exp) :
     isIfExp(exp) ? `(if ${unparseL31(exp.test)} ${unparseL31(exp.then)} ${unparseL31(exp.alt)})` :
+    isClassExp(exp) ? unparseClassExp(exp) :
     isAppExp(exp) ? `(${unparseL31(exp.rator)} ${unparseLExps(exp.rands)})` :
     isPrimOp(exp) ? exp.op :
     isLetExp(exp) ? unparseLetExp(exp) :
     isDefineExp(exp) ? `(define ${exp.var.var} ${unparseL31(exp.val)})` :
     isProgram(exp) ? `(L31 ${unparseLExps(exp.exps)})` :
     exp;
+
+
+bind(bind(p(`(class (a b) ((first (lambda () a)) (second (lambda () b)) (sum (lambda () (+ a b)))))`),parseL31Exp), x=>makeOk(unparseL31(x)));
