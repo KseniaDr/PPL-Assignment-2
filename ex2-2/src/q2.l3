@@ -1,34 +1,14 @@
-(define append 
-  (lambda(lst1 lst2)
-      (if (= lst1 '())
-          lst2
-          (if (= lst2 '())
-              lst1
-          (cons (car lst1) (append (cdr lst1) lst2))))
-  )
-)
+(define empty?
+   (lambda (x)
+      (eq? x '())))
 
-(define reverse 
+(define length
   (lambda (lst)
-         (if (empty? lst)
-            '()
-            ((cons (car (reverse (cdr lst))))))
+    (if (empty? lst)
+        0
+        (+ 1 (length (cdr lst))))
+    )
   )
-)
-
-(define duplicate-items
-   (lambda(lst dup-count)
-      (if (empty? dup-count)
-          lst
-          (let ((lstSize (length lst)) (dupSize (length dup-count)))
-            (if (>= lstSize dupSize)
-                (helper lst (extendDup dup-count lstSize) (car dup-count) '())
-                (helper lst dup-count (car dup-count) '()));end if
-            );end let
-          )
-     )
-  )
-
 
 (define remove-all-dup
   (lambda (x lst)
@@ -38,42 +18,6 @@
         (remove-all-dup x (cdr lst))
     (cons (car lst) 
           (remove-all-dup x (cdr lst)))))))
-
-(define payment
-    (lambda (n coins-lst)
-        (if (< n 0)
-            0
-        (if (= n 0)
-            1
-        (if (and (> n 0) (empty? coins-lst))
-            0
-        (+ (payment  (- n (car coins-lst))  (cdr coins-lst)) 
-           (payment n (remove-all-dup (car coins-lst) coins-lst))))))))
-                               
-(define compose-n
-  (lambda(f n)
-       (lambda (x)
-         (compose-n-helper f n x)
-        )
-  )
-)
-(define x)
-(define compose-n-helper
-  (lambda (f count x)
-    (if (= count 1)
-        (f x)
-        (compose-n-helper f (- count 1) (f x))
-        )
-    )
-  )
-
-(define length
-  (lambda (lst)
-    (if (empty? lst)
-        0
-        (+ 1 (length (cdr lst))))
-    )
-  )
 
 (define extendDup
   (lambda (lst size)
@@ -92,3 +36,57 @@
         (helper (cdr lst1) (cdr lst2) (car (cdr lst2)) answer-list)))
     )
   )
+
+(define append 
+  (lambda(lst1 lst2)
+      (if (empty? lst1)
+          lst2
+          (cons (car lst1) (append (cdr lst1) lst2)))
+  )
+)
+
+(define reverse 
+  (lambda (lst)
+         (if (empty? lst)
+            '()
+            (append (reverse (cdr lst)) (list (car lst))))
+  )
+)
+
+(define duplicate-items
+  (lambda (lst dup-count)
+    (if (empty? dup-count)
+        lst
+        (if (or (> (length lst) (length dup-count)) (= (length lst) (length dup-count)))
+                (helper lst (extendDup dup-count (length lst)) (car dup-count) '())
+                (helper lst dup-count (car dup-count) '())))
+    )
+  )
+
+(define payment
+    (lambda (n coins-lst)
+        (if (< n 0)
+            0
+        (if (= n 0)
+            1
+        (if (and (> n 0) (empty? coins-lst))
+            0
+        (+ (payment  (- n (car coins-lst))  (cdr coins-lst)) 
+           (payment n (remove-all-dup (car coins-lst) coins-lst))))))))
+
+(define compose-n-helper
+  (lambda (f count x)
+    (if (= count 1)
+        (f x)
+        (compose-n-helper f (- count 1) (f x))
+        )
+    )
+  )
+
+(define compose-n
+  (lambda(f n)
+       (lambda (x)
+         (compose-n-helper f n x)
+        )
+  )
+)
