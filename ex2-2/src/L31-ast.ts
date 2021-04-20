@@ -273,6 +273,11 @@ export const parseSExp = (sexp: Sexp): Result<SExpValue> =>
     sexp;
 
 // parse Class
+/*
+Purpose: Parse a special form class from Sexp to a Cexp for the AST
+Signature: parseClassExp(fields: Sexp, bindings: Sexp) : Result<ClassExp>
+Type: [Sexp,Sexp] => Result<ClassExp>
+*/
 export const parseClassExp = (fields: Sexp, bindings: Sexp): Result<ClassExp> =>{
         if(!isArray(fields) || !isGoodBindings(bindings) || !allT(isString, fields)) {
             return makeFailure("field not an array or not a good binding");
@@ -326,4 +331,13 @@ export const unparseL31 = (exp: Program | Exp): string =>
     exp;
 
 
-bind(bind(p(`(class (a b) ((first (lambda () a)) (second (lambda () b)) (sum (lambda () (+ a b)))))`),parseL31Exp), x=>makeOk(unparseL31(x)));
+console.log(bind(bind(p(`(define pair
+    (lambda (a b)
+    (lambda (msg)
+    (if (eq? msg 'first)
+    (lambda () a)
+    (if (eq? msg 'second)
+    (lambda () b)
+    (if (eq? msg 'sum)
+    (lambda () (+ a b)) 
+    #f))))))`),parseL31Exp), x=>makeOk(unparseL31(x))));
